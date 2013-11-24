@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <link rel='stylesheet' href='/stylesheets/bootstrap.css' />
+    <link rel='stylesheet' href='/stylesheets/bootstrap-responsive.css' />
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript" src="/javascripts/jquery-1.10.2.js"></script>
+    <script type="text/javascript" src="/javascripts/bootstrap.js"></script>
+  </head>
+  <body>
+    <script type="text/javascript">
+      var socket = io.connect('http://localhost:3000/client');
+      socket.on('system', function(data) {
+        status(data.msg);
+      });
+      socket.on('message', function(data) {
+        console.log(data);
+        content(data.name + ' says:' + data.msg);
+      });
+
+      function status(message) {
+        $('#system').append(message + '<br />');
+      }
+
+      function content(message) {
+        $('#content').append(message + '\n');
+      }
+
+      function sendMsg() {
+        var msg = $('#msg').val();
+        if ($.trim(msg)) {
+          socket.emit('message', { msg: msg });
+          $('#msg').val('');
+        };
+      }
+    </script>
+    <div class="container-fluid">
+      <div class="row-fluid">
+        <div class="span12">
+          <div class="row-fluid">
+            <div class="span8">
+                <div class="control-group">
+                  <div class="controls">
+                    <h1><%= title %></h1>
+                    <p>Welcome to <%= title %></p>
+                    <div class="alert">
+                      <button type="button" class="close" data-dismiss="alert">×</button>
+                      <h4>提示!</h4><div id="system"></div>
+                    </div>
+                    <textarea class="input-xlarge" id="content" style="height: 300px; width: 500px" disabled></textarea>
+                  </div>
+                </div>
+                <div class="control-group">
+                  <div class="controls">
+                      <textarea class="input-xlarge" style="width: 500px" id="msg"></textarea>
+                      <button class="btn btn-success" onClick="sendMsg()">提交</button>
+                  </div>
+                </div>
+            </div>
+            <div class="span4"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

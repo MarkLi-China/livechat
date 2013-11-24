@@ -1,0 +1,80 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Socket.io Test</title>
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+    <style type="text/css">
+      * { font-family:"微软雅黑" "黑体"; font-size:14px; }
+      notify { color:red; font-style:italic; }
+      input { padding:3px; }
+    </style>
+  </head>
+  <body>
+    <script>
+    Date.prototype.datetime = function() {
+      var year = this.getFullYear();
+      var month = this.getMonth() + 1;
+      var day = this.getDate();
+      var hours = this.getHours();
+      var minute = this.getMinutes();
+      var second = this.getSeconds();
+
+      month = month > 10 ? month : '0' + month;
+      day = day > 10 ? day : '0' + day;
+      hours = hours > 10 ? hours : '0' + hours;
+      minute = minute > 10 ? minute : '0' + minute;
+      second = second > 10 ? second : '0' + second;
+
+      return year+'-'+month+'-'+day+' '+hours+':'+minute+':'+second;
+    };
+
+    $(document).ready(function(){
+      var socket = io.connect('http://localhost:8080');
+
+      /* 播报消息列表里的消息 */
+      var notifies = new Array();
+      var notifyLoop = setInterval(function() {
+        if(notifies.length > 0) {
+          $('#notify').text(notifies.splice(0, 1)[0]);
+          if($('#notify').is(':hidden')) {
+            $('#notify').slideDown(400);
+          }
+        } else {
+          $('#notify').slideUp(400);
+        }
+      }, 2000);
+
+      /* 初次连接显示公告 */
+      socket.on('notify', function (data) {
+        notifies.push("["+ (new Date).datetime() + "]"+ data.message);
+      });
+
+      /* 接受消息 */
+      socket.on('newMessage', function(data){
+        console.log(data);
+        $('#publicMsg').append(""+data.nickname+" "+(new Date).datetime()+ " "+ data.message+"");
+      });
+
+      /* 发送消息 */
+      $('#sendMessage').click(function(){
+        var messageText = $('#messageText').val();
+        if(messageText != '') {
+          $('#messageText').val(null);
+          socket.emit('sendMessage', { message: messageText });
+        }
+      });
+
+      $('#nickname').change(function(){
+        var nickname = $(this).val();
+        if(nickname != '') {
+          socket.emit('setNickname', { 'nickname': nickname });
+        }
+      });
+    });
+    </script>
+    <div id="notify"></div>
+    <div id="publicMsg"></div>
+    <input type="text" id="nickname" value="" style="width:50px;" /><input type="text" id="messageText" style="width:300px;" /> <input type="button" id="sendMessage" value="Send" />
+  </body>
+</html>
